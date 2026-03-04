@@ -1,29 +1,32 @@
 #!/bin/bash
 # Script para crear una Debian Live ISO personalizada (Compatible con Ventoy)
+set -e # Detener el script si hay cualquier error
 
 echo "Iniciando compilación de MBR-GPT Live OS..."
-echo "Asegúrate de ejecutar esto como root en una distribución basada en Debian/Ubuntu."
 
-# Instalamos prerrequisitos de live-build
-apt-get update
-apt-get install -y live-build debootstrap
+# Instalar prerrequisitos si es necesario (para GH Actions)
+if ! command -v lb &> /dev/null; then
+    sudo apt-get update && sudo apt-get install -y live-build debootstrap
+fi
 
 # Crear carpeta de trabajo
 WORKSPACE="/tmp/mbr-gpt-live"
-rm -rf "$WORKSPACE"
+sudo rm -rf "$WORKSPACE"
 mkdir -p "$WORKSPACE"
 cd "$WORKSPACE"
 
+echo "Configurando entorno Live..."
 # Configurar live-build (arquitectura amd64)
 lb config -a amd64 \
     --distribution bookworm \
     --binary-images iso-hybrid \
     --archive-areas "main contrib non-free non-free-firmware" \
-    --iso-application "MBR-GPT Converter Live" \
+    --iso-application "MBR-GPT Converter" \
     --iso-volume "MBR-GPT-LIVE" \
     --bootappend-live "boot=live components locales=es_ES.UTF-8 keyboard-layouts=es quiet splash"
 
-# Instalar paquetes requeridos (Entorno gráfico ligero y herramientas)
+# Instalar paquetes requeridos
+mkdir -p config/package-lists/
 cat <<EOF > config/package-lists/my-packages.list.chroot
 lxde-core
 xserver-xorg
@@ -39,34 +42,32 @@ EOF
 
 # Copiar el script de la app al entorno Live ISO
 mkdir -p config/includes.chroot/opt/mbr-gpt/
-cp "$(dirname "$0")/app.py" config/includes.chroot/opt/mbr-gpt/
-cp "$(dirname "$0")/disk_operations.py" config/includes.chroot/opt/mbr-gpt/
+cp "/home/runner/work/MBR-GPT-PRO/MBR-GPT-PRO/app.py" config/includes.chroot/opt/mbr-gpt/ 2>/dev/null || cp "/Users/danielgil/Documents/MBR-GPT/app.py" config/includes.chroot/opt/mbr-gpt/
+cp "/home/runner/work/MBR-GPT-PRO/MBR-GPT-PRO/disk_operations.py" config/includes.chroot/opt/mbr-gpt/ 2>/dev/null || cp "/Users/danielgil/Documents/MBR-GPT/disk_operations.py" config/includes.chroot/opt/mbr-gpt/
 
-# Crear script de autoarranque para la GUI
+# Crear script de autoarranque
 mkdir -p config/includes.chroot/etc/xdg/lxsession/LXDE/
 cat <<EOF > config/includes.chroot/etc/xdg/lxsession/LXDE/autostart
 @lxpanel --profile LXDE
 @pcmanfm --desktop --profile LXDE
 @xset s off
-@xset -dpms
-@xset s noblank
 @sudo python3 /opt/mbr-gpt/app.py
 EOF
 
-# Asegurar que el usuario live tenga sudo sin contraseña
+# Permisos sudo
 mkdir -p config/includes.chroot/etc/sudoers.d/
 echo "live ALL=(ALL) NOPASSWD: ALL" > config/includes.chroot/etc/sudoers.d/live
 chmod 0440 config/includes.chroot/etc/sudoers.d/live
 
-# Limpiar cache y construir
-lb clean
-echo "Construyendo la ISO... esto tomará tiempo."
-lb build
+echo "Construyendo la ISO... Esto tardará unos minutos."
+sudo lb build
 
-# Acabar y copiar la ISO al directorio original
+# Mover la ISO al directorio de salida
 if [ -f live-image-amd64.hybrid.iso ]; then
-    cp live-image-amd64.hybrid.iso "$(dirname "$0")/mbr_gpt_converter.iso"
-    echo "¡ISO creada con éxito en la carpeta original del proyecto!"
+    cp live-image-amd64.hybrid.iso /home/runner/work/MBR-GPT-PRO/MBR-GPT-PRO/mbr_gpt_converter.iso 2>/dev/null || cp live-image-amd64.hybrid.iso /Users/danielgil/Documents/MBR-GPT/mbr_gpt_converter.iso
+    echo "¡ÉXITO: ISO generada!"
 else
-    echo "Fallo en la creación de la ISO."
+    echo "ERROR: No se encontró la ISO tras la compilación."
+    exit 1
 fi
+
