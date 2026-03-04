@@ -1,0 +1,29 @@
+name: Build MBR-GPT Live ISO
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y live-build debootstrap
+
+      - name: Build ISO
+        run: |
+          chmod +x build_iso.sh
+          sudo ./build_iso.sh
+
+      - name: Upload ISO Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: MBR-GPT-Converter-ISO
+          path: mbr_gpt_converter.iso
