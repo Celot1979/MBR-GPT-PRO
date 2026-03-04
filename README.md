@@ -1,7 +1,6 @@
 # 🛠️ MBR-GPT Pro: Conversor Universal de Particiones
 
-![Estado del Proyecto](https://img.shields.io/badge/Status-Estable-green)
-![OS](https://img.shields.io/badge/SO-Windows%20%7C%20Linux%20%7C%20Live%20ISO-blue)
+![App Interface](assets/app_interface.jpg)
 
 **MBR-GPT Pro** es una herramienta técnica diseñada para la gestión segura y conversión de tablas de particiones entre formatos **MBR (Legacy)** y **GPT (UEFI)**. Creado para técnicos y estudiantes, permite trabajar desde sistemas operativos en ejecución o mediante una **ISO de Rescate Universal** compatible con Ventoy.
 
@@ -17,13 +16,15 @@ Si quieres usar esta herramienta en cualquier PC (incluso si no arranca), sigue 
     *   Descarga el archivo en la sección **Artifacts** y descomprime el `.zip`.
 2.  **Copia a Ventoy:**
     *   Arrastra el archivo `mbr_gpt_converter.iso` a tu pendrive Ventoy.
+
+![Ventoy Menu](assets/ventoy_menu.jpg)
+
 3.  **Arranca el PC:**
     *   Inicia el ordenador desde el USB.
     *   Selecciona `MBR-GPT-Pro` y pulsa Enter.
-    *   **¡Listo!** El programa se abrirá automáticamente en segundos.
+    *   Verás la secuencia de carga de Linux y el programa se abrirá solo.
 
-> [!TIP]
-> **INSERTA AQUÍ TU FOTO:** *Muestra una captura de pantalla del menú de Ventoy con la ISO seleccionada o la interfaz del programa abierta en el PC.*
+![Linux Boot](assets/linux_boot.jpg)
 
 ---
 
@@ -32,13 +33,11 @@ Si quieres usar esta herramienta en cualquier PC (incluso si no arranca), sigue 
 Este proyecto nació de la necesidad de tener una herramienta multiplataforma que no dependiera de costosas licencias de software propietario.
 
 ### Stack Tecnológico:
-*   **Lenguaje:** [Python 3](https://www.python.org/) para la lógica y la interfaz.
-*   **Interfaz Gráfica (GUI):** `Tkinter` con un diseño moderno y centrado de ventana.
-*   **Motor de Discos (Backend):** 
-    *   En **Windows**: PowerShell nativo + `mbr2gpt.exe`.
-    *   En **Linux**: `gdisk`, `sgdisk` y `lsblk`.
-*   **Infraestructura Live:** [Debian Bookworm](https://www.debian.org/) como base para la ISO ligera.
-*   **Automatización (CI/CD):** [GitHub Actions](https://github.com/features/actions) para fabricar la ISO en un contenedor Docker de Debian Privilegiado.
+*   **Lenguaje:** Python 3 para la lógica y la interfaz.
+*   **GUI:** Tkinter con diseño premium y centrado automático.
+*   **Motor:** PowerShell (Windows) y GDisk/Parted (Linux).
+*   **Live ISO:** Debian Bookworm + LXDE Desktop.
+*   **Automatización:** GitHub Actions con Docker Privilegiado.
 
 ---
 
@@ -46,35 +45,14 @@ Este proyecto nació de la necesidad de tener una herramienta multiplataforma qu
 
 **¿Perderé mis datos al convertir?**
 El programa utiliza métodos **no destructivos**. En la conversión de MBR a GPT, los datos se preservan al 100%. Para GPT a MBR, siempre que el disco tenga **4 particiones o menos**, la estructura se respeta. 
-*Nota: Siempre recomendamos backup para datos críticos.*
 
 **¿Funciona en discos de sistema?**
-Sí, especialmente desde la **ISO de Ventoy**, ya que el disco de Windows no está "en uso" y el programa tiene acceso total al hardware.
+Sí, especialmente desde la **ISO de Ventoy**, ya que el disco de Windows no está "en uso".
 
----
-
-## 👨‍🎓 Para Compañeros de Clase (Desarrollo)
-
-Si quieres modificar o mejorar este programa:
-
-```bash
-# Clonar el repo
-git clone https://github.com/Celot1979/MBR-GPT-PRO.git
-
-# Ejecutar en Linux
-chmod +x run_linux.sh
-./run_linux.sh
-
-# Ejecutar en Windows
-python app.py
-```
-
-> [!IMPORTANT]
-> **INSERTA AQUÍ TU FOTO:** *Una captura de la interfaz de usuario mostrando la detección de los discos de tu PC.*
+![App Interface Zoom](assets/app_interface_zoom.jpg)
 
 ---
 
 ## ✍️ Autor
 *   **Daniel Gil** - [Celot1979](https://github.com/Celot1979)
 
-Si este proyecto te ha servido en tus prácticas, ¡no olvides darle una ⭐ en GitHub!
