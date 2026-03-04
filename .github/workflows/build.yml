@@ -8,22 +8,29 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    # Usamos un contenedor de Debian puro para evitar conflictos de sistema
+    container:
+      image: debian:bookworm
+      options: --privileged # Vital para que live-build pueda montar discos virtuales
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Install dependencies
+      - name: Install system dependencies
         run: |
-          sudo apt-get update
-          sudo apt-get install -y live-build debootstrap
+          apt-get update
+          apt-get install -y live-build debootstrap sudo coreutils
 
       - name: Build ISO
         run: |
           chmod +x build_iso.sh
-          sudo ./build_iso.sh
+          # Ejecutamos el script. Al estar en el contenedor, ya somos root.
+          ./build_iso.sh
 
       - name: Upload ISO Artifact
         uses: actions/upload-artifact@v4
         with:
           name: MBR-GPT-Converter-ISO
           path: mbr_gpt_converter.iso
+          if-no-files-found: error

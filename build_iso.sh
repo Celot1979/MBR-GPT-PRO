@@ -1,33 +1,26 @@
 #!/bin/bash
-# Script para crear una Debian Live ISO personalizada (Compatible con Ventoy)
-set -e # Detener el script si hay cualquier error
+set -e # Detener el script ante cualquier error
 
-echo "Iniciando compilación de MBR-GPT Live OS..."
+echo "--- INICIANDO CONSTRUCCIÓN PROFESIONAL DE MBR-GPT LIVE ---"
 
-# Instalar prerrequisitos si es necesario (para GH Actions)
-if ! command -v lb &> /dev/null; then
-    sudo apt-get update && sudo apt-get install -y live-build debootstrap
-fi
+# 1. Limpieza de seguridad
+rm -rf build_space
+mkdir -p build_space
+cd build_space
 
-# Crear carpeta de trabajo
-WORKSPACE="/tmp/mbr-gpt-live"
-sudo rm -rf "$WORKSPACE"
-mkdir -p "$WORKSPACE"
-cd "$WORKSPACE"
-
-echo "Configurando entorno Live..."
-# Configurar live-build (arquitectura amd64)
-lb config -a amd64 \
+# 2. Configuración de la ISO (Debian Bookworm con interfaz LXDE)
+lb config \
     --distribution bookworm \
     --binary-images iso-hybrid \
+    --architectures amd64 \
     --archive-areas "main contrib non-free non-free-firmware" \
-    --iso-application "MBR-GPT Converter" \
+    --iso-application "MBR-GPT-Pro" \
     --iso-volume "MBR-GPT-LIVE" \
-    --bootappend-live "boot=live components locales=es_ES.UTF-8 keyboard-layouts=es quiet splash"
+    --bootappend-live "boot=live components locales=es_ES.UTF-8 keyboard-layouts=es"
 
-# Instalar paquetes requeridos
+# 3. Lista de paquetes a incluir
 mkdir -p config/package-lists/
-cat <<EOF > config/package-lists/my-packages.list.chroot
+cat <<EOF > config/package-lists/desktop.list.chroot
 lxde-core
 xserver-xorg
 xinit
@@ -36,38 +29,41 @@ python3-tk
 gdisk
 util-linux
 parted
-sfdisk
 sudo
 EOF
 
-# Copiar el script de la app al entorno Live ISO
-mkdir -p config/includes.chroot/opt/mbr-gpt/
-cp "/home/runner/work/MBR-GPT-PRO/MBR-GPT-PRO/app.py" config/includes.chroot/opt/mbr-gpt/ 2>/dev/null || cp "/Users/danielgil/Documents/MBR-GPT/app.py" config/includes.chroot/opt/mbr-gpt/
-cp "/home/runner/work/MBR-GPT-PRO/MBR-GPT-PRO/disk_operations.py" config/includes.chroot/opt/mbr-gpt/ 2>/dev/null || cp "/Users/danielgil/Documents/MBR-GPT/disk_operations.py" config/includes.chroot/opt/mbr-gpt/
+# 4. Inyectar nuestra aplicación en la ISO
+# La carpeta config/includes.chroot copia archivos directamente al sistema de la ISO
+APP_DIR="config/includes.chroot/opt/mbr-gpt"
+mkdir -p "$APP_DIR"
+cp ../app.py "$APP_DIR/"
+cp ../disk_operations.py "$APP_DIR/"
 
-# Crear script de autoarranque
-mkdir -p config/includes.chroot/etc/xdg/lxsession/LXDE/
-cat <<EOF > config/includes.chroot/etc/xdg/lxsession/LXDE/autostart
+# 5. Configurar el Auto-Arranque (Que se abra la app al encender)
+AUTOSTART_DIR="config/includes.chroot/etc/xdg/lxsession/LXDE"
+mkdir -p "$AUTOSTART_DIR"
+cat <<EOF > "$AUTOSTART_DIR/autostart"
 @lxpanel --profile LXDE
 @pcmanfm --desktop --profile LXDE
 @xset s off
-@sudo python3 /opt/mbr-gpt/app.py
+@sudo /usr/bin/python3 /opt/mbr-gpt/app.py
 EOF
 
-# Permisos sudo
-mkdir -p config/includes.chroot/etc/sudoers.d/
-echo "live ALL=(ALL) NOPASSWD: ALL" > config/includes.chroot/etc/sudoers.d/live
-chmod 0440 config/includes.chroot/etc/sudoers.d/live
+# 6. Permisos de administrador automáticos para el usuario Live
+SUDO_DIR="config/includes.chroot/etc/sudoers.d"
+mkdir -p "$SUDO_DIR"
+echo "live ALL=(ALL) NOPASSWD: ALL" > "$SUDO_DIR/live"
+chmod 0440 "$SUDO_DIR/live"
 
-echo "Construyendo la ISO... Esto tardará unos minutos."
-sudo lb build
+# 7. EJECUCIÓN DE LA COMPILACIÓN
+echo "Compilando... Este proceso dura unos minutos ya que descarga el sistema base Debian."
+lb build
 
-# Mover la ISO al directorio de salida
+# 8. Mover el resultado a la raíz para que GitHub lo vea
 if [ -f live-image-amd64.hybrid.iso ]; then
-    cp live-image-amd64.hybrid.iso /home/runner/work/MBR-GPT-PRO/MBR-GPT-PRO/mbr_gpt_converter.iso 2>/dev/null || cp live-image-amd64.hybrid.iso /Users/danielgil/Documents/MBR-GPT/mbr_gpt_converter.iso
-    echo "¡ÉXITO: ISO generada!"
+    mv live-image-amd64.hybrid.iso ../mbr_gpt_converter.iso
+    echo "--- ¡ÉXITO! ISO GENERADA CORRECTAMENTE ---"
 else
-    echo "ERROR: No se encontró la ISO tras la compilación."
+    echo "ERROR: La ISO no se generó. Revisa los logs de lb build arriba."
     exit 1
 fi
-
