@@ -2,7 +2,7 @@
 
 ![App Interface](assets/app_interface.jpg)
 
-**MBR-GPT Pro** es una herramienta técnica diseñada para la gestión segura y conversión de tablas de particiones entre formatos **MBR (Legacy)** y **GPT (UEFI)**. Creado para técnicos y estudiantes, permite trabajar desde sistemas operativos en ejecución o mediante una **ISO de Rescate Universal** compatible con Ventoy.
+**MBR-GPT Pro** es una herramienta técnica diseñada para la gestión segura y conversión de tablas de particiones entre formatos **MBR (Legacy)** y **GPT (UEFI)**. Permite trabajar desde sistemas operativos en ejecución o mediante una **ISO de Rescate Universal** compatible con Ventoy.
 
 ---
 
