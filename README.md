@@ -12,8 +12,11 @@ Si quieres usar esta herramienta en cualquier PC (incluso si no arranca), sigue 
 
 1.  **Descarga la ISO:** 
     *   Ve a la pestaña [Actions](https://github.com/Celot1979/MBR-GPT-PRO/actions) de este repositorio.
+    ![Paso 1: Actions](assets/step1_actions.png)
     *   Haz clic en la última construcción exitosa ✅.
+    ![Paso 2: Build](assets/step2_build.png)
     *   Descarga el archivo en la sección **Artifacts** y descomprime el `.zip`.
+    ![Paso 3: Artifacts](assets/step3_artifacts.png)
 2.  **Copia a Ventoy:**
     *   Arrastra el archivo `mbr_gpt_converter.iso` a tu pendrive Ventoy.
 
